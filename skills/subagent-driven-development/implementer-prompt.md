@@ -18,13 +18,13 @@ Task tool (general-purpose):
 
     ## Before You Begin
 
-    If you have questions about:
+    If you identify missing context about:
     - The requirements or acceptance criteria
     - The approach or implementation strategy
     - Dependencies or assumptions
     - Anything unclear in the task description
 
-    **Ask them now.** Raise any concerns before starting work.
+    First inspect the provided task, context, and codebase. If the gap is low-risk, make a reasonable assumption and continue. If the gap is genuinely blocking and materially affects correctness, report NEEDS_CONTEXT before starting.
 
     ## Your Job
 
@@ -38,8 +38,7 @@ Task tool (general-purpose):
 
     Work from: [directory]
 
-    **While you work:** If you encounter something unexpected or unclear, **ask questions**.
-    It's always OK to pause and clarify. Don't guess or make assumptions.
+    **While you work:** If you encounter something unexpected or unclear, investigate first and make reasonable assumptions when the risk is low. Report NEEDS_CONTEXT only for genuinely blocking ambiguity. Report BLOCKED only when safe progress is not possible.
 
     ## Code Organization
 

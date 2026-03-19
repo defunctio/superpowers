@@ -208,7 +208,9 @@ You MUST complete each phase before proceeding to the next.
    - Are we "sticking with it through sheer inertia"?
    - Should we refactor architecture vs. continue fixing symptoms?
 
-   **Discuss with your human partner before attempting more fixes**
+   **Do not attempt Fix #4 as another local patch.** Either:
+   - redesign the architecture explicitly if the right structural change is clear, or
+   - stop with a documented architectural blocker if it is not
 
    This is NOT a failed hypothesis - this is a wrong architecture.
 

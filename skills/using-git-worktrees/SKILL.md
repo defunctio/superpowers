@@ -35,17 +35,12 @@ grep -i "worktree.*director" CLAUDE.md 2>/dev/null
 
 **If preference specified:** Use it without asking.
 
-### 3. Ask User
+### 3. Default Automatically
 
 If no directory exists and no CLAUDE.md preference:
 
 ```
-No worktree directory found. Where should I create worktrees?
-
-1. .worktrees/ (project-local, hidden)
-2. ~/.config/superpowers/worktrees/<project-name>/ (global location)
-
-Which would you prefer?
+Default to `.worktrees/`.
 ```
 
 ## Safety Verification
@@ -129,7 +124,10 @@ pytest
 go test ./...
 ```
 
-**If tests fail:** Report failures, ask whether to proceed or investigate.
+**If tests fail:** Record the failures and assess whether they block the planned work.
+
+- If failures appear pre-existing and do not block implementation or verification for this task, proceed and note them explicitly.
+- If failures prevent reliable verification of the requested change, stop with a documented blocker instead of asking a synchronous question.
 
 **If tests pass:** Report ready.
 
@@ -148,9 +146,9 @@ Ready to implement <feature-name>
 | `.worktrees/` exists | Use it (verify ignored) |
 | `worktrees/` exists | Use it (verify ignored) |
 | Both exist | Use `.worktrees/` |
-| Neither exists | Check CLAUDE.md → Ask user |
+| Neither exists | Check CLAUDE.md → default to `.worktrees/` |
 | Directory not ignored | Add to .gitignore + commit |
-| Tests fail during baseline | Report failures + ask |
+| Tests fail during baseline | Report failures, then proceed or stop based on whether they block verification |
 | No package.json/Cargo.toml | Skip dependency install |
 
 ## Common Mistakes
@@ -163,12 +161,12 @@ Ready to implement <feature-name>
 ### Assuming directory location
 
 - **Problem:** Creates inconsistency, violates project conventions
-- **Fix:** Follow priority: existing > CLAUDE.md > ask
+- **Fix:** Follow priority: existing > CLAUDE.md > default `.worktrees/`
 
 ### Proceeding with failing tests
 
 - **Problem:** Can't distinguish new bugs from pre-existing issues
-- **Fix:** Report failures, get explicit permission to proceed
+- **Fix:** Report failures, then decide whether they block the requested work
 
 ### Hardcoding setup commands
 
@@ -196,12 +194,11 @@ Ready to implement auth feature
 **Never:**
 - Create worktree without verifying it's ignored (project-local)
 - Skip baseline test verification
-- Proceed with failing tests without asking
-- Assume directory location when ambiguous
+- Ignore failing baseline tests without assessing whether they block verification
 - Skip CLAUDE.md check
 
 **Always:**
-- Follow directory priority: existing > CLAUDE.md > ask
+- Follow directory priority: existing > CLAUDE.md > default `.worktrees/`
 - Verify directory is ignored for project-local
 - Auto-detect and run project setup
 - Verify clean test baseline

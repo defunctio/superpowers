@@ -121,25 +121,25 @@ After writing the complete plan:
 
 **Review loop guidance:**
 - Same agent that wrote the plan fixes it (preserves context)
-- If loop exceeds 3 iterations, surface to human for guidance
+- If loop exceeds 3 iterations, use best judgment: fix all clear issues, document any remaining high-risk uncertainty in the plan, and continue only if implementation can still proceed safely
 - Reviewers are advisory — explain disagreements if you believe feedback is incorrect
 
 ## Execution Handoff
 
-After saving the plan, offer execution choice:
+After saving the plan, choose the execution mode automatically:
 
-**"Plan complete and saved to `docs/superpowers/plans/<filename>.md`. Two execution options:**
+**Default:** use `superpowers:subagent-driven-development`
 
-**1. Subagent-Driven (recommended)** - I dispatch a fresh subagent per task, review between tasks, fast iteration
+- Fresh subagent per task
+- Two-stage review between tasks
+- Best fit for autonomous environments and GitHub agent workflows
 
-**2. Inline Execution** - Execute tasks in this session using executing-plans, batch execution with checkpoints
+**Use `superpowers:executing-plans` only if:**
+- Subagents are unavailable
+- A higher-priority instruction explicitly requires inline execution
+- The task is so tightly coupled that per-task subagent handoff would be counterproductive
 
-**Which approach?"**
+Do not stop to ask the user which mode to use.
 
-**If Subagent-Driven chosen:**
-- **REQUIRED SUB-SKILL:** Use superpowers:subagent-driven-development
-- Fresh subagent per task + two-stage review
-
-**If Inline Execution chosen:**
-- **REQUIRED SUB-SKILL:** Use superpowers:executing-plans
-- Batch execution with checkpoints for review
+**Default autonomous handoff message:**
+`Plan complete and saved to docs/superpowers/plans/<filename>.md. Proceeding with superpowers:subagent-driven-development.`

@@ -7,9 +7,9 @@ description: Use when implementation is complete, all tests pass, and you need t
 
 ## Overview
 
-Guide completion of development work by presenting clear options and handling chosen workflow.
+Guide completion of development work by publishing autonomous implementation results safely.
 
-**Core principle:** Verify tests → Present options → Execute choice → Clean up.
+**Core principle:** Verify tests → publish branch updates safely → preserve recoverability.
 
 **Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
 
@@ -17,7 +17,7 @@ Guide completion of development work by presenting clear options and handling ch
 
 ### Step 1: Verify Tests
 
-**Before presenting options, verify tests pass:**
+**Before publishing changes, verify tests pass:**
 
 ```bash
 # Run project's test suite
@@ -40,123 +40,68 @@ Stop. Don't proceed to Step 2.
 ### Step 2: Determine Base Branch
 
 ```bash
-# Try common base branches
-git merge-base HEAD main 2>/dev/null || git merge-base HEAD master 2>/dev/null
+# Prefer the remote default branch, then fall back
+git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's@^origin/@@' || echo main
 ```
 
-Or ask: "This branch split from main - is that correct?"
+If that fails, try `main`, then `master`, then use the current branch's upstream merge target if available. Do not stop to ask the user.
 
-### Step 3: Present Options
+### Step 3: Publish Autonomously
 
-Present exactly these 4 options:
+Default autonomous behavior:
 
-```
-Implementation complete. What would you like to do?
+1. Never merge locally by default
+2. Never discard work automatically
+3. Preserve the branch and publish changes instead
+4. Prefer updating an existing PR; otherwise push and create one
 
-1. Merge back to <base-branch> locally
-2. Push and create a Pull Request
-3. Keep the branch as-is (I'll handle it later)
-4. Discard this work
-
-Which option?
-```
-
-**Don't add explanation** - keep options concise.
-
-### Step 4: Execute Choice
-
-#### Option 1: Merge Locally
+Determine whether an open PR already exists for the current branch:
 
 ```bash
-# Switch to base branch
-git checkout <base-branch>
-
-# Pull latest
-git pull
-
-# Merge feature branch
-git merge <feature-branch>
-
-# Verify tests on merged result
-<test command>
-
-# If tests pass
-git branch -d <feature-branch>
+branch="$(git branch --show-current)"
+gh pr view --head "$branch" --json url 2>/dev/null
 ```
 
-Then: Cleanup worktree (Step 5)
-
-#### Option 2: Push and Create PR
+#### If an open PR already exists for the current branch
 
 ```bash
-# Push branch
+git push
+```
+
+Report that the existing PR branch was updated.
+
+#### If no PR exists yet
+
+```bash
 git push -u origin <feature-branch>
-
-# Create PR
-gh pr create --title "<title>" --body "$(cat <<'EOF'
+gh pr create --base <base-branch> --head <feature-branch> --title "<title>" --body "$(cat <<'EOF'
 ## Summary
 <2-3 bullets of what changed>
 
 ## Test Plan
-- [ ] <verification steps>
+- [x] <verification steps actually run>
 EOF
 )"
 ```
 
-Then: Cleanup worktree (Step 5)
+Report the PR URL.
 
-#### Option 3: Keep As-Is
+### Step 4: Preserve Recoverability
 
-Report: "Keeping branch <name>. Worktree preserved at <path>."
-
-**Don't cleanup worktree.**
-
-#### Option 4: Discard
-
-**Confirm first:**
-```
-This will permanently delete:
-- Branch <name>
-- All commits: <commit-list>
-- Worktree at <path>
-
-Type 'discard' to confirm.
-```
-
-Wait for exact confirmation.
-
-If confirmed:
-```bash
-git checkout <base-branch>
-git branch -D <feature-branch>
-```
-
-Then: Cleanup worktree (Step 5)
-
-### Step 5: Cleanup Worktree
-
-**For Options 1, 2, 4:**
-
-Check if in worktree:
-```bash
-git worktree list | grep $(git branch --show-current)
-```
-
-If yes:
-```bash
-git worktree remove <worktree-path>
-```
-
-**For Option 3:** Keep worktree.
+- Do not delete the branch automatically
+- Do not discard the worktree automatically
+- Do not merge locally automatically
+- Do not remove local recovery paths unless a higher-priority instruction explicitly requests cleanup
 
 ## Quick Reference
 
-| Option | Merge | Push | Keep Worktree | Cleanup Branch |
-|--------|-------|------|---------------|----------------|
-| 1. Merge locally | ✓ | - | - | ✓ |
-| 2. Create PR | - | ✓ | ✓ | - |
-| 3. Keep as-is | - | - | ✓ | - |
-| 4. Discard | - | - | - | ✓ (force) |
+| Situation | Action |
+|-----------|--------|
+| Tests fail | Stop and report blocker |
+| Open PR exists | Push updates to current branch |
+| No PR exists | Push branch and create PR |
+| No remote push possible | Preserve branch/worktree and report blocker |
+| Cleanup desired | Only if explicitly instructed |
 
 ## Common Mistakes
 
@@ -164,31 +109,27 @@ git worktree remove <worktree-path>
 - **Problem:** Merge broken code, create failing PR
 - **Fix:** Always verify tests before offering options
 
-**Open-ended questions**
-- **Problem:** "What should I do next?" → ambiguous
-- **Fix:** Present exactly 4 structured options
+**Interactive choice prompts**
+- **Problem:** Autonomous agents stall waiting for a human response
+- **Fix:** Push or create PR by default; never pause for routine integration choices
 
 **Automatic worktree cleanup**
-- **Problem:** Remove worktree when might need it (Option 2, 3)
-- **Fix:** Only cleanup for Options 1 and 4
-
-**No confirmation for discard**
-- **Problem:** Accidentally delete work
-- **Fix:** Require typed "discard" confirmation
+- **Problem:** Deletes recovery path after autonomous work
+- **Fix:** Preserve branch and worktree unless explicitly instructed otherwise
 
 ## Red Flags
 
 **Never:**
 - Proceed with failing tests
-- Merge without verifying tests on result
-- Delete work without confirmation
+- Merge locally by default
+- Delete work automatically
 - Force-push without explicit request
 
 **Always:**
-- Verify tests before offering options
-- Present exactly 4 options
-- Get typed confirmation for Option 4
-- Clean up worktree for Options 1 & 4 only
+- Verify tests before publishing changes
+- Prefer updating an existing PR branch
+- Create a PR if no PR exists yet
+- Preserve the branch and worktree by default
 
 ## Integration
 
