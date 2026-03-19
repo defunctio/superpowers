@@ -13,6 +13,22 @@ The goal is not to remove design discipline. The goal is to remove unnecessary h
 - review loops
 - escalation only for genuinely high-risk ambiguity
 
+## Operating Assumptions
+
+This branch is optimized for GitHub/Codex agent workflows with these assumptions:
+
+- the agent may start from an assigned issue rather than an interactive chat
+- new issue comments should not be relied on as an in-flight control channel
+- routine iteration happens after publication, typically through pull request comments
+- the default "successful completion" path is to publish branch updates safely, not to ask what should happen next
+
+Because of that, this branch prefers:
+
+- assumptions over routine clarification prompts
+- explicit blockers over conversational waiting states
+- PR-first publishing behavior
+- preserving recovery paths such as branches and worktrees
+
 ## Comparison Base
 
 - Upstream repository: `obra/superpowers`
